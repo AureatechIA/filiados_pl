@@ -47,9 +47,7 @@ export default function AdminCadastroOperadores() {
         setMessage({ type: '', text: '' });
 
         try {
-            if (formData.role === 'operador' && !formData.uf) {
-                throw new Error('UF é obrigatória para o perfil Operador.');
-            }
+            // UF is now optional per user request (Global Operator)
 
             const { data, error } = await supabase.functions.invoke('create-portal-user', {
                 body: {
@@ -181,12 +179,11 @@ export default function AdminCadastroOperadores() {
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem' }}>
                                 <div className="form-group">
-                                    <label>UF (Obrigatório)</label>
+                                    <label>UF (Opcional — Deixe vazio para Global)</label>
                                     <select
                                         value={formData.uf}
                                         className="form-select"
                                         onChange={e => setFormData({ ...formData, uf: e.target.value })}
-                                        required
                                     >
                                         <option value="">Selecione...</option>
                                         {['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'].map(uf => (

@@ -54,6 +54,7 @@ USING (
 );
 
 -- Operador: Só vê registros compatíveis com seu escopo (UF) e não pegos por outros
+-- Se o UF do operador for NULL, ele vê tudo.
 DROP POLICY IF EXISTS "Operador vê registros compatíveis" ON public.filiados;
 CREATE POLICY "Operador vê registros compatíveis" 
 ON public.filiados FOR SELECT 
@@ -64,7 +65,11 @@ USING (
   (
     portal_user_id IS NULL 
     AND lista_manual = false 
-    AND uf_ddd = (SELECT uf FROM public.portal_users WHERE id = auth.uid())
+    AND (
+      (SELECT uf FROM public.portal_users WHERE id = auth.uid()) IS NULL
+      OR 
+      uf_ddd = (SELECT uf FROM public.portal_users WHERE id = auth.uid())
+    )
   )
 );
 
@@ -97,7 +102,7 @@ BEGIN
     AND portal_user_id IS NULL
     AND lista_manual = false
     AND enviado_n8n IS NULL
-    AND uf_ddd = v_user_uf;  -- Garantia adicional de escopo no update
+    AND (v_user_uf IS NULL OR uf_ddd = v_user_uf);  -- Escopo flexível: UF ou Global
 
   GET DIAGNOSTICS v_updated_count = ROW_COUNT;
   
