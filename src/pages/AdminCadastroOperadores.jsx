@@ -8,7 +8,14 @@ export default function AdminCadastroOperadores() {
     const [message, setMessage] = useState({ type: '', text: '' });
 
     const [showForm, setShowForm] = useState(false);
-    const [formData, setFormData] = useState({ nome: '', email: '', role: 'operador' });
+    const [formData, setFormData] = useState({
+        nome: '',
+        email: '',
+        role: 'diretorio',
+        uf: '',
+        municipio: '',
+        operador_type: 'aurea'
+    });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
@@ -39,16 +46,22 @@ export default function AdminCadastroOperadores() {
         setMessage({ type: '', text: '' });
 
         try {
+            if (formData.role === 'diretorio' && !formData.uf) {
+                throw new Error('UF é obrigatório para perfil Diretorio.');
+            }
+
             // The edge function requires an explicit, temporary password.
-            // We generate a secure default one here.
             const tempPassword = Math.random().toString(36).slice(-8) + 'A1!';
 
-            const { data, error } = await supabase.functions.invoke('create_operador', {
+            const { data, error } = await supabase.functions.invoke('create-portal-user', {
                 body: {
                     nome: formData.nome,
                     email: formData.email,
                     role: formData.role,
-                    password: tempPassword
+                    password: tempPassword,
+                    uf: formData.uf || null,
+                    municipio: formData.municipio || null,
+                    operador_type: formData.operador_type
                 }
             });
 
@@ -60,7 +73,9 @@ export default function AdminCadastroOperadores() {
 
             setMessage({ type: 'success', text: `Criado! Anote a Senha Provisória para o usuário: ${tempPassword}` });
             setShowForm(false);
-            setFormData({ nome: '', email: '', role: 'operador' });
+            setFormData({
+                nome: '', email: '', role: 'diretorio', uf: '', municipio: '', operador_type: 'aurea'
+            });
             fetchOperadores();
 
         } catch (err) {
@@ -132,8 +147,46 @@ export default function AdminCadastroOperadores() {
                                 onChange={e => setFormData({ ...formData, role: e.target.value })}
                                 style={{ padding: '0.75rem', borderRadius: '0.5rem', background: 'var(--bg-lighter)', color: 'white', border: '1px solid var(--border)' }}
                             >
-                                <option value="operador">Operador (Envios)</option>
+                                <option value="diretorio">Diretório (Operador de Envios)</option>
                                 <option value="admin">Administrador Geral</option>
+                                <option value="dev">Desenvolvedor (Dev)</option>
+                            </select>
+                        </div>
+
+                        <div className="form-group" style={{ display: formData.role === 'diretorio' ? 'block' : 'none' }}>
+                            <label>UF (Obrigatório para Diretório)</label>
+                            <select
+                                value={formData.uf}
+                                onChange={e => setFormData({ ...formData, uf: e.target.value })}
+                                style={{ padding: '0.75rem', borderRadius: '0.5rem', background: 'var(--bg-lighter)', color: 'white', border: '1px solid var(--border)' }}
+                                required={formData.role === 'diretorio'}
+                            >
+                                <option value="">Selecione uf...</option>
+                                {['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'].map(uf => (
+                                    <option key={uf} value={uf}>{uf}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="form-group">
+                            <label>Município Eleitoral (Opcional)</label>
+                            <input
+                                type="text"
+                                value={formData.municipio}
+                                onChange={e => setFormData({ ...formData, municipio: e.target.value })}
+                                placeholder="Ex: São Paulo"
+                            />
+                        </div>
+
+                        <div className="form-group">
+                            <label>Tipo de Operador</label>
+                            <select
+                                value={formData.operador_type}
+                                onChange={e => setFormData({ ...formData, operador_type: e.target.value })}
+                                style={{ padding: '0.75rem', borderRadius: '0.5rem', background: 'var(--bg-lighter)', color: 'white', border: '1px solid var(--border)' }}
+                            >
+                                <option value="aurea">Aurea</option>
+                                <option value="diretorio">Diretório</option>
                             </select>
                         </div>
 
