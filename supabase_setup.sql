@@ -6,8 +6,8 @@
 ALTER TABLE public.filiados 
 ADD COLUMN IF NOT EXISTS portal_user_id uuid REFERENCES public.portal_users(id);
 
--- 1.a Índice parcial para performance crítica e sem lock
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_filiados_disponiveis 
+-- 1.a Índice parcial para performance crítica
+CREATE INDEX IF NOT EXISTS idx_filiados_disponiveis 
 ON public.filiados(id) 
 WHERE portal_user_id IS NULL 
   AND enviado_n8n IS NULL 
@@ -27,13 +27,13 @@ TO authenticated
 USING (id = auth.uid());
 
 -- Função auxiliar para evitar recursão infinita no RLS de portal_users
+-- NOTA: Agora usa metadata do JWT para evitar consulta circular na tabela portal_users
 CREATE OR REPLACE FUNCTION public.is_admin() 
 RETURNS boolean AS $$
-  SELECT EXISTS (
-    SELECT 1 FROM public.portal_users 
-    WHERE id = auth.uid() AND role = 'admin'
-  )
-$$ LANGUAGE sql SECURITY DEFINER;
+BEGIN
+  RETURN (auth.jwt() -> 'user_metadata' ->> 'role') = 'admin';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Admin pode ler todos os perfis e criar
 DROP POLICY IF EXISTS "Admin pode ler todos os perfis" ON public.portal_users;
@@ -49,13 +49,7 @@ DROP POLICY IF EXISTS "Admin vê tudo" ON public.filiados;
 CREATE POLICY "Admin vê tudo" 
 ON public.filiados FOR SELECT 
 TO authenticated 
-USING (
-  EXISTS (
-    SELECT 1 FROM public.portal_users 
-    WHERE public.portal_users.id = auth.uid() 
-      AND public.portal_users.role = 'admin'
-  )
-);
+USING (public.is_admin());
 
 -- Operador: Só vê registros compatíveis com seu escopo (UF) e não pegos por outros
 -- Se o UF do operador for NULL, ele vê tudo.
@@ -162,3 +156,16 @@ BEGIN
   RETURN true;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 6. ATUALIZAÇÃO DE CAMPANHA (SOLICITADO PELO USUÁRIO)
+-- UUID: 40a865ae-aad9-456f-86e3-915131c42f77
+
+UPDATE public.followup_campanhas
+SET status = 'em_andamento'
+WHERE id = '40a865ae-aad9-456f-86e3-915131c42f77';
+
+-- Finaliza outras que possam estar abertas para não confundir o operador
+UPDATE public.followup_campanhas
+SET status = 'finalizada'
+WHERE id <> '40a865ae-aad9-456f-86e3-915131c42f77' 
+  AND status IN ('em_andamento', 'pendente');

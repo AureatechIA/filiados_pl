@@ -12,54 +12,78 @@ export default function AdminDashboard() {
         erro500: 0,
         pendente: 0
     });
-
+    const [userPerformance, setUserPerformance] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         fetchMetrics();
-
-        // Auto-refresh a cada 30 segundos (opcional, bom para dash de campanha)
         const interval = setInterval(fetchMetrics, 30000);
         return () => clearInterval(interval);
     }, []);
 
     const fetchMetrics = async () => {
         try {
-            // Como o painel precisa olhar de 'followup_envios', filtramos os dados agregados.
-            // Em projetos escaláveis reais com milhões de rows isso requereria RPC, 
-            // mas usaremos count nativo da API REST do Supabase.
+            // 1. Fetch Global Summary Metrics
+            const { data: envios, error: enviosError } = await supabase
+                .from('followup_envios')
+                .select('status, erro');
 
-            const fetchCount = async (filters) => {
-                let req = supabase.from('followup_envios').select('*', { count: 'exact', head: true });
-                for (const [key, val] of Object.entries(filters)) {
-                    if (val === 'erro400') {
-                        req = req.eq('erro', 'Erro 400');
-                    } else if (val === 'erro500') {
-                        req = req.eq('erro', 'Erro 500');
-                    } else {
-                        req = req.eq(key, val);
-                    }
+            if (enviosError) throw enviosError;
+
+            const summary = (envios || []).reduce((acc, curr) => {
+                acc.total++;
+                if (curr.status === 'enviado') acc.sucesso++;
+                else if (curr.status === 'pendente') acc.pendente++;
+
+                if (curr.erro?.includes('400')) acc.erro400++;
+                else if (curr.erro?.includes('500')) acc.erro500++;
+
+                return acc;
+            }, { total: 0, sucesso: 0, erro400: 0, erro500: 0, pendente: 0 });
+
+            setMetrics(summary);
+
+            // 2. Fetch User Performance
+            // We need to join followup_envios with filiados to get the operator (portal_user_id)
+            const { data: rawPerf, error: perfError } = await supabase
+                .from('followup_envios')
+                .select(`
+                    status,
+                    erro,
+                    filiados (
+                        portal_user_id,
+                        portal_users (
+                            nome
+                        )
+                    )
+                `);
+
+            if (perfError) throw perfError;
+
+            const perfMap = {};
+
+            (rawPerf || []).forEach(item => {
+                const operator = item.filiados?.portal_users?.nome || 'Sistema/N8N';
+                const operatorId = item.filiados?.portal_user_id || 'system';
+
+                if (!perfMap[operatorId]) {
+                    perfMap[operatorId] = { nome: operator, total: 0, sucesso: 0, erro: 0 };
                 }
-                const { count, error } = await req;
-                if (error) console.warn(error);
-                return count || 0;
-            };
 
-            const [total, sucesso, e400, e500, pendentes] = await Promise.all([
-                fetchCount({}), // Total tentatives
-                fetchCount({ status: 'enviado' }), // Sucessos
-                fetchCount({ erro_tipo: 'erro400' }), // Custom string filters
-                fetchCount({ erro_tipo: 'erro500' }),
-                fetchCount({ status: 'pendente' }),
-            ]);
-
-            setMetrics({
-                total,
-                sucesso,
-                erro400: e400,
-                erro500: e500,
-                pendente: pendentes
+                perfMap[operatorId].total++;
+                if (item.status === 'enviado') {
+                    perfMap[operatorId].sucesso++;
+                } else if (item.status === 'falha') {
+                    perfMap[operatorId].erro++;
+                }
             });
+
+            const performanceList = Object.values(perfMap).map(u => ({
+                ...u,
+                conversao: u.total > 0 ? Math.round((u.sucesso / u.total) * 100) : 0
+            })).sort((a, b) => b.total - a.total);
+
+            setUserPerformance(performanceList);
 
         } catch (err) {
             console.error("Erro ao puxar metricas", err);
@@ -76,7 +100,6 @@ export default function AdminDashboard() {
         );
     }
 
-    // Full strict fallback per instruction: block render without session/user
     if (!user) return null;
 
     return (
@@ -84,7 +107,7 @@ export default function AdminDashboard() {
             <div className="page-header" style={{ marginBottom: '2rem' }}>
                 <h1 className="page-title">Métricas da Operação Manual</h1>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>
-                    Monitoramento em tempo real dos despachos manuais feitos via WhatsApp. Apenas leitura.
+                    Monitoramento em tempo real dos despachos manuais feitos via WhatsApp.
                 </p>
             </div>
 
@@ -95,7 +118,6 @@ export default function AdminDashboard() {
                 marginBottom: '2rem'
             }}>
 
-                {/* Total Card */}
                 <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--primary)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h3 style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Total Tentativas</h3>
@@ -106,7 +128,6 @@ export default function AdminDashboard() {
                     </p>
                 </div>
 
-                {/* Success Card */}
                 <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--success)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <h3 style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Sucessos</h3>
@@ -117,21 +138,9 @@ export default function AdminDashboard() {
                     </p>
                 </div>
 
-                {/* Pendentes */}
-                <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--text-muted)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h3 style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Pendentes Finalização</h3>
-                        <Loader2 size={20} style={{ color: 'var(--text-muted)' }} />
-                    </div>
-                    <p style={{ fontSize: '2rem', fontWeight: 'bold', marginTop: '0.5rem' }}>
-                        {metrics.pendente}
-                    </p>
-                </div>
-
-                {/* Error 400 Card */}
                 <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--warning)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h3 style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Erros 400 (Inválido)</h3>
+                        <h3 style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Erros 400</h3>
                         <AlertTriangle size={20} style={{ color: 'var(--warning)' }} />
                     </div>
                     <p style={{ fontSize: '2rem', fontWeight: 'bold', marginTop: '0.5rem' }}>
@@ -139,10 +148,9 @@ export default function AdminDashboard() {
                     </p>
                 </div>
 
-                {/* Error 500 Card */}
                 <div className="card" style={{ padding: '1.5rem', borderLeft: '4px solid var(--danger)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h3 style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Erros 500 (Temporário)</h3>
+                        <h3 style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Erros 500</h3>
                         <XCircle size={20} style={{ color: 'var(--danger)' }} />
                     </div>
                     <p style={{ fontSize: '2rem', fontWeight: 'bold', marginTop: '0.5rem' }}>
@@ -152,17 +160,9 @@ export default function AdminDashboard() {
 
             </div>
 
-            {/* PERFORMANCE DO USUÁRIO */}
             <div className="card" style={{ padding: '2rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                     <h2 style={{ fontSize: '1.25rem', margin: 0 }}>📊 Performance do Usuário</h2>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <select className="btn" style={{ padding: '0.25rem 0.5rem', background: 'var(--bg-lighter)', color: 'white', border: '1px solid var(--border)', fontSize: '0.8rem' }}>
-                            <option>Hoje</option>
-                            <option>Esta Semana</option>
-                            <option>Este Mês</option>
-                        </select>
-                    </div>
                 </div>
 
                 <div className="table-container">
@@ -171,42 +171,34 @@ export default function AdminDashboard() {
                             <tr>
                                 <th style={{ textAlign: 'left' }}>Usuário</th>
                                 <th>Total</th>
-                                <th>Sucesso (OK)</th>
-                                <th>Erro (400/500)</th>
+                                <th>Sucesso</th>
+                                <th>Erro</th>
                                 <th>Conversão</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {/* Dados mockados estruturados conforme pedido para Dashboard Admin */}
-                            <tr>
-                                <td style={{ textAlign: 'left', fontWeight: 'bold' }}>Operador Alpha (Demonstração)</td>
-                                <td>150</td>
-                                <td className="text-success">120</td>
-                                <td className="text-danger">30</td>
-                                <td>80%</td>
-                            </tr>
-                            <tr>
-                                <td style={{ textAlign: 'left', fontWeight: 'bold' }}>Operador Beta (Demonstração)</td>
-                                <td>200</td>
-                                <td className="text-success">180</td>
-                                <td className="text-danger">20</td>
-                                <td>90%</td>
-                            </tr>
-                            <tr>
-                                <td style={{ textAlign: 'left', fontWeight: 'bold' }}>Operador Gamma (Demonstração)</td>
-                                <td>80</td>
-                                <td className="text-success">40</td>
-                                <td className="text-danger">40</td>
-                                <td>50%</td>
-                            </tr>
+                            {userPerformance.length === 0 ? (
+                                <tr>
+                                    <td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                                        Nenhum dado de envio registrado ainda.
+                                    </td>
+                                </tr>
+                            ) : (
+                                userPerformance.map((u, i) => (
+                                    <tr key={i}>
+                                        <td style={{ textAlign: 'left', fontWeight: 'bold' }}>{u.nome}</td>
+                                        <td>{u.total}</td>
+                                        <td className="text-success">{u.sucesso}</td>
+                                        <td className="text-danger">{u.erro}</td>
+                                        <td>{u.conversao}%</td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
-
-                <p style={{ marginTop: '1.5rem', fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center' }}>
-                    * Dados comparativos entre usuários ativos no período selecionado.
-                </p>
             </div>
         </div>
+
     );
 }
