@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 import { Loader2, TrendingUp, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 
 export default function AdminDashboard() {
+    const { user } = useAuth();
     const [metrics, setMetrics] = useState({
         total: 0,
         sucesso: 0,
@@ -73,6 +75,9 @@ export default function AdminDashboard() {
             </div>
         );
     }
+
+    // Full strict fallback per instruction: block render without session/user
+    if (!user) return null;
 
     return (
         <div>
