@@ -69,7 +69,13 @@ export const AuthProvider = ({ children }) => {
             }
 
             setUser(authUser);
-            setRole(portalUser?.role || 'operador'); // Fallback to 'operador' if not found
+
+            // Use DB role primarily, fallback to JWT metadata role, then 'operador'
+            const dbRole = portalUser?.role;
+            const jwtRole = authUser.user_metadata?.role;
+            const finalRole = dbRole || jwtRole || 'operador';
+
+            setRole(finalRole);
         } catch (err) {
             console.error(err);
         } finally {
