@@ -14,7 +14,6 @@ export default function AdminCadastroOperadores() {
         role: 'diretorio',
         uf: '',
         municipio: '',
-        municipio: '',
         operador_type: 'aurea',
         password: ''
     });
