@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Loader2, UserPlus, Users, CheckCircle, AlertCircle, X } from 'lucide-react';
+import { Loader2, UserPlus, Users, CheckCircle, AlertCircle, X, Shield, MapPin } from 'lucide-react';
 
 export default function AdminCadastroOperadores() {
     const [operadores, setOperadores] = useState([]);
@@ -11,7 +11,7 @@ export default function AdminCadastroOperadores() {
     const [formData, setFormData] = useState({
         nome: '',
         email: '',
-        role: 'diretorio',
+        role: 'operador', // Standardized: 'admin' | 'operador'
         uf: '',
         municipio: '',
         operador_type: 'aurea',
@@ -47,12 +47,9 @@ export default function AdminCadastroOperadores() {
         setMessage({ type: '', text: '' });
 
         try {
-            if (formData.role === 'diretorio' && !formData.uf) {
-                throw new Error('UF é obrigatório para perfil Diretorio.');
+            if (formData.role === 'operador' && !formData.uf) {
+                throw new Error('UF é obrigatória para o perfil Operador.');
             }
-
-            // The edge function requires an explicit, temporary password.
-            const tempPassword = Math.random().toString(36).slice(-8) + 'A1!';
 
             const { data, error } = await supabase.functions.invoke('create-portal-user', {
                 body: {
@@ -60,8 +57,8 @@ export default function AdminCadastroOperadores() {
                     email: formData.email,
                     role: formData.role,
                     password: formData.password,
-                    uf: formData.uf || null,
-                    municipio: formData.municipio || null,
+                    uf: formData.role === 'operador' ? formData.uf : null,
+                    municipio: formData.role === 'operador' ? formData.municipio : null,
                     operador_type: formData.operador_type
                 }
             });
@@ -75,13 +72,13 @@ export default function AdminCadastroOperadores() {
             setMessage({ type: 'success', text: `Operador criado com sucesso!` });
             setShowForm(false);
             setFormData({
-                nome: '', email: '', role: 'diretorio', uf: '', municipio: '', operador_type: 'aurea', password: ''
+                nome: '', email: '', role: 'operador', uf: '', municipio: '', operador_type: 'aurea', password: ''
             });
             fetchOperadores();
 
         } catch (err) {
             console.error(err);
-            setMessage({ type: 'error', text: err.message || 'Erro ao criar operador. O e-mail já existe?' });
+            setMessage({ type: 'error', text: err.message || 'Erro ao criar operador.' });
         } finally {
             setIsSubmitting(false);
         }
@@ -115,98 +112,117 @@ export default function AdminCadastroOperadores() {
             </div>
 
             {showForm && (
-                <div className="card" style={{ padding: '2rem', marginBottom: '2rem' }}>
-                    <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Cadastrar Novo Membro</h2>
-                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-
-                        <div className="form-group">
-                            <label>Nome Completo</label>
-                            <input
-                                type="text"
-                                required
-                                value={formData.nome}
-                                onChange={e => setFormData({ ...formData, nome: e.target.value })}
-                                placeholder="Ex: João Silva"
-                            />
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginBottom: '2rem' }}>
+                    {/* CARD 1: DADOS DE ACESSO */}
+                    <div className="card" style={{ padding: '2rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                            <Shield className="text-primary" size={24} />
+                            <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Card 1 — Dados de Acesso</h2>
                         </div>
 
-                        <div className="form-group">
-                            <label>E-mail</label>
-                            <input
-                                type="email"
-                                required
-                                value={formData.email}
-                                onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                placeholder="Ex: joao@email.com"
-                            />
-                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                            <div className="form-group">
+                                <label>Nome Completo</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.nome}
+                                    onChange={e => setFormData({ ...formData, nome: e.target.value })}
+                                    placeholder="Ex: João Silva"
+                                />
+                            </div>
 
-                        <div className="form-group">
-                            <label>Senha do Usuário</label>
-                            <input
-                                type="text"
-                                required
-                                value={formData.password}
-                                onChange={e => setFormData({ ...formData, password: e.target.value })}
-                                placeholder="Defina uma senha"
-                            />
-                        </div>
+                            <div className="form-group">
+                                <label>E-mail</label>
+                                <input
+                                    type="email"
+                                    required
+                                    value={formData.email}
+                                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                    placeholder="Ex: joao@email.com"
+                                />
+                            </div>
 
-                        <div className="form-group">
-                            <label>Perfil (Role)</label>
-                            <select
-                                value={formData.role}
-                                onChange={e => setFormData({ ...formData, role: e.target.value })}
-                                style={{ padding: '0.75rem', borderRadius: '0.5rem', background: 'var(--bg-lighter)', color: 'white', border: '1px solid var(--border)' }}
-                            >
-                                <option value="diretorio">Diretório (Operador de Envios)</option>
-                                <option value="admin">Administrador Geral</option>
-                                <option value="dev">Desenvolvedor (Dev)</option>
-                            </select>
-                        </div>
+                            <div className="form-group">
+                                <label>Senha</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.password}
+                                    onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                    placeholder="Defina uma senha"
+                                />
+                            </div>
 
-                        <div className="form-group" style={{ display: formData.role === 'diretorio' ? 'block' : 'none' }}>
-                            <label>UF (Obrigatório para Diretório)</label>
-                            <select
-                                value={formData.uf}
-                                onChange={e => setFormData({ ...formData, uf: e.target.value })}
-                                style={{ padding: '0.75rem', borderRadius: '0.5rem', background: 'var(--bg-lighter)', color: 'white', border: '1px solid var(--border)' }}
-                                required={formData.role === 'diretorio'}
-                            >
-                                <option value="">Selecione uf...</option>
-                                {['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'].map(uf => (
-                                    <option key={uf} value={uf}>{uf}</option>
-                                ))}
-                            </select>
+                            <div className="form-group">
+                                <label>Perfil (Role)</label>
+                                <select
+                                    value={formData.role}
+                                    onChange={e => setFormData({ ...formData, role: e.target.value })}
+                                    style={{ padding: '0.75rem', borderRadius: '0.5rem', background: 'var(--bg-lighter)', color: 'white', border: '1px solid var(--border)' }}
+                                >
+                                    <option value="operador">Operador (Atuação Manual)</option>
+                                    <option value="admin">Administrador Geral</option>
+                                </select>
+                            </div>
                         </div>
+                    </div>
 
-                        <div className="form-group">
-                            <label>Município Eleitoral (Opcional)</label>
-                            <input
-                                type="text"
-                                value={formData.municipio}
-                                onChange={e => setFormData({ ...formData, municipio: e.target.value })}
-                                placeholder="Ex: São Paulo"
-                            />
+                    {/* CARD 2: ESCOPO OPERACIONAL (Somente Operador) */}
+                    {formData.role === 'operador' && (
+                        <div className="card" style={{ padding: '2rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                                <MapPin className="text-primary" size={24} />
+                                <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Card 2 — Escopo Operacional</h2>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem' }}>
+                                <div className="form-group">
+                                    <label>UF (Obrigatório)</label>
+                                    <select
+                                        value={formData.uf}
+                                        onChange={e => setFormData({ ...formData, uf: e.target.value })}
+                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', background: 'var(--bg-lighter)', color: 'white', border: '1px solid var(--border)' }}
+                                        required
+                                    >
+                                        <option value="">Selecione...</option>
+                                        {['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'].map(uf => (
+                                            <option key={uf} value={uf}>{uf}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Município Eleitoral (Opcional)</label>
+                                    <input
+                                        type="text"
+                                        value={formData.municipio}
+                                        onChange={e => setFormData({ ...formData, municipio: e.target.value })}
+                                        placeholder="Ex: São Paulo"
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Tipo de Operador (Visual)</label>
+                                    <select
+                                        value={formData.operador_type}
+                                        onChange={e => setFormData({ ...formData, operador_type: e.target.value })}
+                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', background: 'var(--bg-lighter)', color: 'white', border: '1px solid var(--border)' }}
+                                    >
+                                        <option value="aurea">Aurea</option>
+                                        <option value="diretorio">Diretório</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
+                    )}
 
-                        <div className="form-group">
-                            <label>Tipo de Operador</label>
-                            <select
-                                value={formData.operador_type}
-                                onChange={e => setFormData({ ...formData, operador_type: e.target.value })}
-                                style={{ padding: '0.75rem', borderRadius: '0.5rem', background: 'var(--bg-lighter)', color: 'white', border: '1px solid var(--border)' }}
-                            >
-                                <option value="aurea">Aurea</option>
-                                <option value="diretorio">Diretório</option>
-                            </select>
-                        </div>
-
-                        <button type="submit" className="btn-primary" disabled={isSubmitting} style={{ marginTop: '1rem' }}>
-                            {isSubmitting ? <Loader2 className="animate-spin" /> : 'Criar Operador'}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <button type="submit" className="btn-primary" disabled={isSubmitting} style={{ width: 'auto', padding: '1rem 3rem' }}>
+                            {isSubmitting ? <Loader2 className="animate-spin" /> : 'Salvar Operador'}
                         </button>
-                    </form>
-                </div>
+                    </div>
+                </form>
             )}
 
             {message.text && (
@@ -230,6 +246,7 @@ export default function AdminCadastroOperadores() {
                                     <th>Nome</th>
                                     <th>Email</th>
                                     <th>Role</th>
+                                    <th>UF</th>
                                     <th>Status</th>
                                     <th>Criado em</th>
                                 </tr>
@@ -240,10 +257,11 @@ export default function AdminCadastroOperadores() {
                                         <td>{op.nome || '-'}</td>
                                         <td>{op.email || '-'}</td>
                                         <td>
-                                            <span className="badge badge-warning" style={{ textTransform: 'capitalize' }}>
+                                            <span className={`badge ${op.role === 'admin' ? 'badge-primary' : 'badge-warning'}`} style={{ textTransform: 'capitalize' }}>
                                                 {op.role}
                                             </span>
                                         </td>
+                                        <td>{op.uf || '-'}</td>
                                         <td>
                                             {op.ativo ? (
                                                 <span className="badge badge-success">Ativo</span>
@@ -262,3 +280,4 @@ export default function AdminCadastroOperadores() {
         </div>
     );
 }
+

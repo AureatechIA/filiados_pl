@@ -53,7 +53,7 @@ export default function App() {
             <Route
               path="user"
               element={
-                <PrivateRoute allowedRoles={['diretorio', 'user']}>
+                <PrivateRoute allowedRoles={['operador']}>
                   <UserDashboard />
                 </PrivateRoute>
               }

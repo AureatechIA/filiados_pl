@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }) => {
             }
 
             setUser(authUser);
-            setRole(portalUser?.role || 'user'); // Fallback to 'user' if not found
+            setRole(portalUser?.role || 'operador'); // Fallback to 'operador' if not found
         } catch (err) {
             console.error(err);
         } finally {

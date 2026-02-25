@@ -151,6 +151,62 @@ export default function AdminDashboard() {
                 </div>
 
             </div>
+
+            {/* PERFORMANCE DO USUÁRIO */}
+            <div className="card" style={{ padding: '2rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                    <h2 style={{ fontSize: '1.25rem', margin: 0 }}>📊 Performance do Usuário</h2>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <select className="btn" style={{ padding: '0.25rem 0.5rem', background: 'var(--bg-lighter)', color: 'white', border: '1px solid var(--border)', fontSize: '0.8rem' }}>
+                            <option>Hoje</option>
+                            <option>Esta Semana</option>
+                            <option>Este Mês</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div className="table-container">
+                    <table style={{ width: '100%' }}>
+                        <thead>
+                            <tr>
+                                <th style={{ textAlign: 'left' }}>Usuário</th>
+                                <th>Total</th>
+                                <th>Sucesso (OK)</th>
+                                <th>Erro (400/500)</th>
+                                <th>Conversão</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {/* Dados mockados estruturados conforme pedido para Dashboard Admin */}
+                            <tr>
+                                <td style={{ textAlign: 'left', fontWeight: 'bold' }}>Operador Alpha (Demonstração)</td>
+                                <td>150</td>
+                                <td className="text-success">120</td>
+                                <td className="text-danger">30</td>
+                                <td>80%</td>
+                            </tr>
+                            <tr>
+                                <td style={{ textAlign: 'left', fontWeight: 'bold' }}>Operador Beta (Demonstração)</td>
+                                <td>200</td>
+                                <td className="text-success">180</td>
+                                <td className="text-danger">20</td>
+                                <td>90%</td>
+                            </tr>
+                            <tr>
+                                <td style={{ textAlign: 'left', fontWeight: 'bold' }}>Operador Gamma (Demonstração)</td>
+                                <td>80</td>
+                                <td className="text-success">40</td>
+                                <td className="text-danger">40</td>
+                                <td>50%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p style={{ marginTop: '1.5rem', fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center' }}>
+                    * Dados comparativos entre usuários ativos no período selecionado.
+                </p>
+            </div>
         </div>
     );
 }

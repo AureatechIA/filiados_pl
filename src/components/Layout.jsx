@@ -21,7 +21,7 @@ export default function Layout() {
                 </div>
 
                 <nav className="nav-links">
-                    {role === 'admin' ? (
+                    {role === 'admin' && (
                         <>
                             <NavLink
                                 to="/admin"
@@ -39,7 +39,9 @@ export default function Layout() {
                                 <span>Cadastro de Operadores</span>
                             </NavLink>
                         </>
-                    ) : (
+                    )}
+
+                    {role === 'operador' && (
                         <NavLink
                             to="/user"
                             className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
