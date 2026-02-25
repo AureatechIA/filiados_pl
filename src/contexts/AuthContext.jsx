@@ -6,6 +6,7 @@ const AuthContext = createContext({});
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [role, setRole] = useState(null);
+    const [senhaAlterada, setSenhaAlterada] = useState(true);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -45,7 +46,7 @@ export const AuthProvider = ({ children }) => {
         try {
             const { data: portalUser, error } = await supabase
                 .from('portal_users')
-                .select('role')
+                .select('role, senha_alterada')
                 .eq('id', authUser.id)
                 .single();
 
@@ -55,6 +56,8 @@ export const AuthProvider = ({ children }) => {
 
             setUser(authUser);
             setRole(portalUser?.role || 'user'); // Fallback to 'user' if not found
+            // Fallback true in case column is purely null from old setups
+            setSenhaAlterada(portalUser?.senha_alterada ?? true);
         } catch (err) {
             console.error(err);
         } finally {
@@ -70,8 +73,14 @@ export const AuthProvider = ({ children }) => {
         return supabase.auth.signOut();
     };
 
+    // Refresh trigger to allow manual auth user refresh without logging out
+    const refreshSession = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) await fetchRoleAndSetUser(session.user);
+    };
+
     return (
-        <AuthContext.Provider value={{ user, role, loading, signIn, signOut }}>
+        <AuthContext.Provider value={{ user, role, senhaAlterada, loading, signIn, signOut, refreshSession }}>
             {!loading && children}
         </AuthContext.Provider>
     );

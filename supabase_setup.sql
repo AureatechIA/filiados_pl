@@ -2,9 +2,12 @@
 -- IMPORTANTE: O comando CREATE INDEX CONCURRENTLY não pode rodar dentro de transações de migrations.
 -- Rode este arquivo preferencialmente na aba SQL Editor do Supabase diretamente.
 
--- 1. Alteração estritamente permitida na tabela principal
+-- 1. Alteração estritamente permitida na tabela principal e users
 ALTER TABLE public.filiados 
 ADD COLUMN IF NOT EXISTS portal_user_id uuid REFERENCES public.portal_users(id);
+
+ALTER TABLE public.portal_users 
+ADD COLUMN IF NOT EXISTS senha_alterada boolean DEFAULT false;
 
 -- 1.a Índice parcial para performance crítica e sem lock
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_filiados_disponiveis 
