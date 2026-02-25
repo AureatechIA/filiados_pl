@@ -47,21 +47,26 @@ export default function AdminCadastroOperadores() {
         setMessage({ type: '', text: '' });
 
         try {
-            // UF is now optional per user request (Global Operator)
+            const payload = {
+                nome: formData.nome,
+                email: formData.email,
+                role: formData.role,
+                password: formData.password,
+                uf: (formData.role === 'operador' && formData.uf.trim()) ? formData.uf : null,
+                municipio: (formData.role === 'operador' && formData.municipio.trim()) ? formData.municipio : null,
+                operador_type: formData.operador_type
+            };
+
+            console.log("Sending payload to create-portal-user:", payload);
 
             const { data, error } = await supabase.functions.invoke('create-portal-user', {
-                body: {
-                    nome: formData.nome,
-                    email: formData.email,
-                    role: formData.role,
-                    password: formData.password,
-                    uf: formData.role === 'operador' ? formData.uf : null,
-                    municipio: formData.role === 'operador' ? formData.municipio : null,
-                    operador_type: formData.operador_type
-                }
+                body: payload
             });
 
-            if (error) throw error;
+            if (error) {
+                console.error("Functions error response:", error);
+                throw error;
+            }
 
             if (data?.error) {
                 throw new Error(data.error);
