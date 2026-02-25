@@ -227,24 +227,15 @@ export default function UserDashboard() {
                                 ENVIADO COM SUCESSO NO WHATSAPP
                             </button>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div style={{ marginTop: '1rem' }}>
                                 <button
                                     className="btn-primary"
-                                    style={{ background: 'var(--warning)', padding: '1rem' }}
-                                    onClick={() => handleFinalizar('erro', 400)}
+                                    style={{ background: '#f59e0b', width: '100%' }}
+                                    onClick={() => handleFinalizar('falha', 400)}
                                     disabled={processing}
                                 >
                                     <AlertTriangle size={20} />
-                                    ERRO 400 (Inválido/Sem WPP)
-                                </button>
-                                <button
-                                    className="btn-primary"
-                                    style={{ background: 'var(--danger)', padding: '1rem' }}
-                                    onClick={() => handleFinalizar('erro', 500)}
-                                    disabled={processing}
-                                >
-                                    <XCircle size={20} />
-                                    ERRO 500 (Temperário)
+                                    NÚMERO INVÁLIDO
                                 </button>
                             </div>
                         </div>

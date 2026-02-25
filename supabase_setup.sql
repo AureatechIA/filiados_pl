@@ -26,17 +26,21 @@ ON public.portal_users FOR SELECT
 TO authenticated 
 USING (id = auth.uid());
 
+-- Função auxiliar para evitar recursão infinita no RLS de portal_users
+CREATE OR REPLACE FUNCTION public.is_admin() 
+RETURNS boolean AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.portal_users 
+    WHERE id = auth.uid() AND role = 'admin'
+  )
+$$ LANGUAGE sql SECURITY DEFINER;
+
 -- Admin pode ler todos os perfis e criar
 DROP POLICY IF EXISTS "Admin pode ler todos os perfis" ON public.portal_users;
 CREATE POLICY "Admin pode ler todos os perfis" 
 ON public.portal_users FOR ALL 
 TO authenticated 
-USING (
-  EXISTS (
-    SELECT 1 FROM public.portal_users admins 
-    WHERE admins.id = auth.uid() AND admins.role = 'admin'
-  )
-);
+USING (public.is_admin());
 
 -- 4. Políticas RÍGIDAS da tabela filiados
 
