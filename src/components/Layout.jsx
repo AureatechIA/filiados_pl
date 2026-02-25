@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Users, LogOut, LayoutDashboard, Send, UserPlus, Key } from 'lucide-react';
-import ChangePassword from './ChangePassword';
+import { Users, LogOut, LayoutDashboard, Send, UserPlus } from 'lucide-react';
 
 export default function Layout() {
-    const { user, role, senhaAlterada, signOut } = useAuth();
+    const { user, role, signOut } = useAuth();
     const navigate = useNavigate();
-    const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const location = useLocation();
 
     const handleLogout = async () => {
         await signOut();
@@ -70,24 +69,8 @@ export default function Layout() {
             </aside>
 
             <main className="main-content">
-                <div className="topbar" style={{ display: 'flex', justifyContent: 'flex-end', padding: '1rem', borderBottom: '1px solid var(--border)' }}>
-                    {senhaAlterada && (
-                        <button
-                            onClick={() => setIsChangingPassword(!isChangingPassword)}
-                            className="btn"
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border)', borderRadius: '0.5rem', cursor: 'pointer' }}
-                        >
-                            <Key size={16} />
-                            {isChangingPassword ? 'Voltar ao App' : 'Mudar Senha'}
-                        </button>
-                    )}
-                </div>
                 <div className="page-content">
-                    {!senhaAlterada || isChangingPassword ? (
-                        <ChangePassword onSuccess={() => setIsChangingPassword(false)} />
-                    ) : (
-                        <Outlet />
-                    )}
+                    <Outlet />
                 </div>
             </main>
         </div>

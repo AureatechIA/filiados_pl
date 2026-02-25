@@ -6,9 +6,6 @@
 ALTER TABLE public.filiados 
 ADD COLUMN IF NOT EXISTS portal_user_id uuid REFERENCES public.portal_users(id);
 
-ALTER TABLE public.portal_users 
-ADD COLUMN IF NOT EXISTS senha_alterada boolean DEFAULT false;
-
 -- 1.a Índice parcial para performance crítica e sem lock
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_filiados_disponiveis 
 ON public.filiados(id) 

@@ -14,7 +14,9 @@ export default function AdminCadastroOperadores() {
         role: 'diretorio',
         uf: '',
         municipio: '',
-        operador_type: 'aurea'
+        municipio: '',
+        operador_type: 'aurea',
+        password: ''
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -58,7 +60,7 @@ export default function AdminCadastroOperadores() {
                     nome: formData.nome,
                     email: formData.email,
                     role: formData.role,
-                    password: tempPassword,
+                    password: formData.password,
                     uf: formData.uf || null,
                     municipio: formData.municipio || null,
                     operador_type: formData.operador_type
@@ -71,10 +73,10 @@ export default function AdminCadastroOperadores() {
                 throw new Error(data.error);
             }
 
-            setMessage({ type: 'success', text: `Criado! Anote a Senha Provisória para o usuário: ${tempPassword}` });
+            setMessage({ type: 'success', text: `Operador criado com sucesso!` });
             setShowForm(false);
             setFormData({
-                nome: '', email: '', role: 'diretorio', uf: '', municipio: '', operador_type: 'aurea'
+                nome: '', email: '', role: 'diretorio', uf: '', municipio: '', operador_type: 'aurea', password: ''
             });
             fetchOperadores();
 
@@ -141,6 +143,17 @@ export default function AdminCadastroOperadores() {
                         </div>
 
                         <div className="form-group">
+                            <label>Senha do Usuário</label>
+                            <input
+                                type="text"
+                                required
+                                value={formData.password}
+                                onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                placeholder="Defina uma senha"
+                            />
+                        </div>
+
+                        <div className="form-group">
                             <label>Perfil (Role)</label>
                             <select
                                 value={formData.role}
@@ -191,7 +204,7 @@ export default function AdminCadastroOperadores() {
                         </div>
 
                         <button type="submit" className="btn-primary" disabled={isSubmitting} style={{ marginTop: '1rem' }}>
-                            {isSubmitting ? <Loader2 className="animate-spin" /> : 'Criar Operador e Gerar Senha'}
+                            {isSubmitting ? <Loader2 className="animate-spin" /> : 'Criar Operador'}
                         </button>
                     </form>
                 </div>
