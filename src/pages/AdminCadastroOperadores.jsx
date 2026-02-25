@@ -117,7 +117,7 @@ export default function AdminCadastroOperadores() {
                     <div className="card" style={{ padding: '2rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
                             <Shield className="text-primary" size={24} />
-                            <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Card 1 — Dados de Acesso</h2>
+                            <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Dados de Acesso</h2>
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
@@ -126,6 +126,7 @@ export default function AdminCadastroOperadores() {
                                 <input
                                     type="text"
                                     required
+                                    className="form-input"
                                     value={formData.nome}
                                     onChange={e => setFormData({ ...formData, nome: e.target.value })}
                                     placeholder="Ex: João Silva"
@@ -137,6 +138,7 @@ export default function AdminCadastroOperadores() {
                                 <input
                                     type="email"
                                     required
+                                    className="form-input"
                                     value={formData.email}
                                     onChange={e => setFormData({ ...formData, email: e.target.value })}
                                     placeholder="Ex: joao@email.com"
@@ -148,6 +150,7 @@ export default function AdminCadastroOperadores() {
                                 <input
                                     type="text"
                                     required
+                                    className="form-input"
                                     value={formData.password}
                                     onChange={e => setFormData({ ...formData, password: e.target.value })}
                                     placeholder="Defina uma senha"
@@ -158,8 +161,8 @@ export default function AdminCadastroOperadores() {
                                 <label>Perfil (Role)</label>
                                 <select
                                     value={formData.role}
+                                    className="form-select"
                                     onChange={e => setFormData({ ...formData, role: e.target.value })}
-                                    style={{ padding: '0.75rem', borderRadius: '0.5rem', background: 'var(--bg-lighter)', color: 'white', border: '1px solid var(--border)' }}
                                 >
                                     <option value="operador">Operador (Atuação Manual)</option>
                                     <option value="admin">Administrador Geral</option>
@@ -173,7 +176,7 @@ export default function AdminCadastroOperadores() {
                         <div className="card" style={{ padding: '2rem' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
                                 <MapPin className="text-primary" size={24} />
-                                <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Card 2 — Escopo Operacional</h2>
+                                <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Escopo Operacional</h2>
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem' }}>
@@ -181,8 +184,8 @@ export default function AdminCadastroOperadores() {
                                     <label>UF (Obrigatório)</label>
                                     <select
                                         value={formData.uf}
+                                        className="form-select"
                                         onChange={e => setFormData({ ...formData, uf: e.target.value })}
-                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', background: 'var(--bg-lighter)', color: 'white', border: '1px solid var(--border)' }}
                                         required
                                     >
                                         <option value="">Selecione...</option>
@@ -196,6 +199,7 @@ export default function AdminCadastroOperadores() {
                                     <label>Município Eleitoral (Opcional)</label>
                                     <input
                                         type="text"
+                                        className="form-input"
                                         value={formData.municipio}
                                         onChange={e => setFormData({ ...formData, municipio: e.target.value })}
                                         placeholder="Ex: São Paulo"
@@ -206,8 +210,8 @@ export default function AdminCadastroOperadores() {
                                     <label>Tipo de Operador (Visual)</label>
                                     <select
                                         value={formData.operador_type}
+                                        className="form-select"
                                         onChange={e => setFormData({ ...formData, operador_type: e.target.value })}
-                                        style={{ padding: '0.75rem', borderRadius: '0.5rem', background: 'var(--bg-lighter)', color: 'white', border: '1px solid var(--border)' }}
                                     >
                                         <option value="aurea">Aurea</option>
                                         <option value="diretorio">Diretório</option>

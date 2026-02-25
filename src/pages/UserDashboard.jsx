@@ -193,14 +193,15 @@ export default function UserDashboard() {
                         </p>
 
                         <div style={{
-                            background: 'rgba(0,0,0,0.2)',
+                            background: 'var(--bg-input)',
                             padding: '1.5rem',
-                            borderRadius: '0.5rem',
+                            borderRadius: 'var(--radius-md)',
                             marginBottom: '2rem',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: '1rem'
+                            gap: '1rem',
+                            border: '1px solid var(--border)'
                         }}>
                             <span style={{ fontSize: '1.5rem', fontWeight: 'bold', letterSpacing: '2px' }}>
                                 {filiadoAtual.telefone || 'SEM NÚMERO'}
