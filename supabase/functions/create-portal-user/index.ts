@@ -70,9 +70,10 @@ Deno.serve(async (req: Request) => {
         }
 
         // Standardized Role Validation: admin, operador, or dev
-        if (!['admin', 'operador', 'dev', 'diretorio'].includes(role)) {
+        const normalizedRole = role ? String(role).toLowerCase().trim() : '';
+        if (!['admin', 'operador', 'dev', 'diretorio'].includes(normalizedRole)) {
             return new Response(
-                JSON.stringify({ error: 'Invalid role. Must be: admin, operador, or dev' }),
+                JSON.stringify({ error: `Invalid role: "${role}". Must be: admin, operador, or dev` }),
                 { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             );
         }

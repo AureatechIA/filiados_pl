@@ -64,8 +64,16 @@ export default function AdminCadastroOperadores() {
             });
 
             if (error) {
+                let errorMsg = error.message;
+                try {
+                    // Try to get detailed error from response body
+                    const body = await error.context?.json();
+                    if (body?.error) errorMsg = body.error;
+                } catch (e) {
+                    console.log("Could not parse error body", e);
+                }
                 console.error("Functions error response:", error);
-                throw error;
+                throw new Error(errorMsg);
             }
 
             if (data?.error) {
