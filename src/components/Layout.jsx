@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Users, LogOut, LayoutDashboard, Send } from 'lucide-react';
+import { Users, LogOut, LayoutDashboard, Send, UserPlus } from 'lucide-react';
 
 export default function Layout() {
     const { user, role, signOut } = useAuth();
@@ -21,13 +21,23 @@ export default function Layout() {
 
                 <nav className="nav-links">
                     {role === 'admin' ? (
-                        <NavLink
-                            to="/admin"
-                            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-                        >
-                            <LayoutDashboard size={20} />
-                            <span>Painel Admin</span>
-                        </NavLink>
+                        <>
+                            <NavLink
+                                to="/admin"
+                                className={({ isActive }) => `nav-item ${isActive && location.pathname === '/admin' ? 'active' : ''}`}
+                                end
+                            >
+                                <LayoutDashboard size={20} />
+                                <span>Painel Admin</span>
+                            </NavLink>
+                            <NavLink
+                                to="/admin/operadores"
+                                className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+                            >
+                                <UserPlus size={20} />
+                                <span>Cadastro de Operadores</span>
+                            </NavLink>
+                        </>
                     ) : (
                         <NavLink
                             to="/user"

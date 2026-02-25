@@ -6,6 +6,7 @@ import PrivateRoute from './components/PrivateRoute';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminCadastroOperadores from './pages/AdminCadastroOperadores';
 import UserDashboard from './pages/UserDashboard';
 
 // Automatically redicts based on role
@@ -36,6 +37,15 @@ export default function App() {
               element={
                 <PrivateRoute allowedRoles={['admin']}>
                   <AdminDashboard />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="admin/operadores"
+              element={
+                <PrivateRoute allowedRoles={['admin']}>
+                  <AdminCadastroOperadores />
                 </PrivateRoute>
               }
             />
