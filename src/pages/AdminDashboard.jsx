@@ -122,13 +122,14 @@ export default function AdminDashboard() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
                 {/* VOLUME CHART */}
-                <div className="card" style={{ padding: '2rem' }}>
+                <div className="card" style={{ padding: '2rem', minHeight: '400px' }}>
                     <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <BarChart3 size={18} className="text-primary" /> Volume de Envios Diários
                     </h3>
-                    <div style={{ width: '100%', height: 300 }}>
-                        <ResponsiveContainer>
+                    <div style={{ width: '100%', height: '300px', position: 'relative' }}>
+                        <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={metrics.chartData}>
+
                                 <defs>
                                     <linearGradient id="colorVolume" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.3} />
