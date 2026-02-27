@@ -157,10 +157,10 @@ export default function UserDashboard() {
     const enviarWhatsApp = () => {
         if (!filiadoAtual?.telefone) return;
 
-        const fone = filiadoAtual.telefone.replace(/\D/g, '');
+        const fone = '55' + filiadoAtual.telefone.replace(/\D/g, '');
         const nomeUpper = (filiadoAtual.nome || '').toUpperCase();
 
-        const mensagem = `Parabéns, ${nomeUpper}!!\nSua filiação ao Partido Liberal foi aprovada com sucesso.\nAcesse o link abaixo para receber sua carteirinha.\n\nhttps://queromefiliaraopl.com.br/carteirinha`;
+        const mensagem = `Parabéns!, ${nomeUpper}!!\nSua filiação ao Partido Liberal foi aprovada com sucesso.\nAcesse o link abaixo para receber sua carteirinha.\n\nhttps://queromefiliaraopl.com.br/carteirinha`;
 
         const url = `https://wa.me/${fone}?text=${encodeURIComponent(mensagem)}`;
         window.open(url, '_blank');
